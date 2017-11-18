@@ -1,0 +1,7 @@
+{
+  "name": "npm-pnp",
+  "dependencies": {
+    "babel-preset-frost": "^0.1.0",
+    "rollup-plugin-babel": "^3.0.2"
+  }
+}
