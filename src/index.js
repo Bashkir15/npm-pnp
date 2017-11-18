@@ -1,14 +1,11 @@
 import { get as getRoot } from 'app-root-dir';
 import { eachOfSeries } from 'async';
-import { rollup } from 'rollup';
 import meow from 'meow';
-import nodeResolve from 'rollup-plugin-node-resolve';
-import jsonPlugin from 'rollup-plugin-json';
 
 import getTranspilers from './transpilers';
 import getBanner from './banner';
 import configureInputs from './helpers/inputs';
-import { findBestInput } from './helpers/bundle';
+import { findBestInput, generateBundle } from './helpers/bundle';
 import { generateOutputMatrix, generateOutputFolder } from './helpers/output';
 
 const Root = getRoot();
@@ -53,11 +50,6 @@ const outputMatrix = generateOutputFolder(
     generateOutputMatrix(pkg, binaryOutput)
 );
 
-const formatToRollup = {
-    commonjs: 'cjs',
-    esmodule: 'es',
-};
-
 const name = pkg.name;
 const banner = getBanner(pkg);
 const formats = ['esmodule', 'cjs'];
@@ -94,6 +86,10 @@ try {
                                     current,
                                     format,
                                     outputFile,
+                                    pkg,
+                                    banner,
+                                    cache,
+                                    Root,
                                     doneCallback,
                                 });
                             } else {
@@ -112,61 +108,4 @@ try {
 } catch (err) {
     console.error(err);
     process.exit(1);
-}
-
-function generateBundle({
-    input,
-    targetId,
-    transpilerId,
-    current,
-    format,
-    outputFile,
-    doneCallback,
-}) {
-    return rollup({
-        input,
-        cache,
-        onwarn(error) {
-            console.warn(error.message);
-        },
-        external(dependency) {
-            if (dependency == input) {
-                return false;
-            }
-
-            if (isExternal(dependency)) {
-                return true;
-            }
-
-            if (isAbsolute(dependency)) {
-                const relativePath = relative(Root, dependency);
-                return Boolean(/node_modules/.exec(relativePath));
-            }
-
-            return dependency.charAt(0) !== '.';
-        },
-        plugins: [
-            nodeResolve({
-                extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json'],
-                jsnext: true,
-                module: true,
-                main: true,
-            }),
-            jsonPlugin(),
-            currentTranspiler,
-        ],
-    })
-        .then(({ write }) =>
-            write({
-                format: formatToRollup[format],
-                name,
-                banner,
-                dest: outputFile,
-            })
-        )
-        .then(() => doneCallback(null))
-        .catch(err => {
-            console.error(err);
-            doneCallback(`Error bundling ${format}: ${err}`);
-        });
 }
