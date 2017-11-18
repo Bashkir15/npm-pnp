@@ -16,7 +16,10 @@
     "trailingComma": "es5"
   },
   "dependencies": {
+    "app-root-dir": "^1.0.2",
+    "async": "^2.6.0",
     "babel-preset-frost": "^0.1.0",
+    "meow": "^3.7.0",
     "rollup-plugin-babel": "^3.0.2"
   },
   "devDependencies": {

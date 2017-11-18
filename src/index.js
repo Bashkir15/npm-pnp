@@ -1,4 +1,5 @@
 import { get as getRoot } from 'app-root-dir';
+import { eachOfSeries } from 'async';
 import meow from 'meow';
 
 import getTranspilers from './transpilers';
