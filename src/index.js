@@ -100,3 +100,50 @@ try {
     console.error(err);
     process.exit(1);
 }
+
+function generateBundle({
+    input,
+    targetId,
+    transpilerId,
+    current,
+    format,
+    outputFile,
+    doneCallback,
+}) {
+    return rollup({
+        input,
+        cache,
+        onwarn(error) {
+            console.warn(error.message);
+        },
+        external(dependency) {
+            if (dependency == input) {
+                return false;
+            }
+
+            if (isExternal(dependency)) {
+                return true;
+            }
+
+            if (isAbsolute(dependency)) {
+                const relativePath = relative(Root, dependency);
+                return Boolean(/node_modules/.exec(relativePath));
+            }
+
+            return dependency.charAt(0) !== '.';
+        },
+        plugins: [currentTranspiler],
+    })
+        .then(({ write }) =>
+            write({
+                format: formatToRollup[format],
+                name,
+                dest: outputFile,
+            })
+        )
+        .then(() => doneCallback(null))
+        .catch(err => {
+            console.error(err);
+            doneCallback(`Error bundling ${format}: ${err}`);
+        });
+}
