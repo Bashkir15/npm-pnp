@@ -1,6 +1,9 @@
 import { get as getRoot } from 'app-root-dir';
 import { eachOfSeries } from 'async';
+import { rollup } from 'rollup';
 import meow from 'meow';
+import nodeResolve from 'rollup-plugin-node-resolve';
+import jsonPlugin from 'rollup-plugin-json';
 
 import getTranspilers from './transpilers';
 import getBanner from './banner';
@@ -142,7 +145,16 @@ function generateBundle({
 
             return dependency.charAt(0) !== '.';
         },
-        plugins: [currentTranspiler],
+        plugins: [
+            nodeResolve({
+                extensions: ['.mjs', '.js', '.jsx', '.ts', '.tsx', '.json'],
+                jsnext: true,
+                module: true,
+                main: true,
+            }),
+            jsonPlugin(),
+            currentTranspiler,
+        ],
     })
         .then(({ write }) =>
             write({
