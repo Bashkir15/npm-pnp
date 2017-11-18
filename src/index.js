@@ -4,6 +4,7 @@ import meow from 'meow';
 
 import getTranspilers from './transpilers';
 import configureInputs from './helpers/inputs';
+import { findBestInput } from './helpers/bundle';
 import { generateOutputMatrix, generateOutputFolder } from './helpers/output';
 
 const Root = getRoot();
@@ -56,3 +57,46 @@ const formatToRollup = {
 const name = pkg.name;
 const formats = ['esmodule', 'cjs'];
 const targets = configureInputs(command.flags);
+
+try {
+    eachOfSeries(targets, (inputs, targetId, inputCallback) => {
+        const input = findBestInput(inputs);
+        if (input) {
+            eachOfSeries(
+                formats,
+                (format, formatIdx, formatCallback) => {
+                    const transpilers = getTranspilers(
+                        command.flags.transpiler,
+                        {
+                            minified: command.flags.minified,
+                            presets: [],
+                            plugins: [],
+                            unstableTarget: true,
+                        }
+                    );
+                    eachOfSeries(
+                        transpilers,
+                        (current, transpilerId, doneCallback) => {
+                            const outputFile =
+                                outputMatrix[
+                                    `${targetId}-${transpilerId}-${format}`
+                                ];
+                            if (outputFile) {
+                                // bundle here
+                            } else {
+                                return doneCallback(null);
+                            }
+                        },
+                        formatCallback
+                    );
+                },
+                inputCallback
+            );
+        } else {
+            inputCallback(null);
+        }
+    });
+} catch (err) {
+    console.error(err);
+    process.exit(1);
+}

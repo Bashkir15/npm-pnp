@@ -1,6 +1,6 @@
 import fileExists from 'file-exists';
 
-export function findBest(inputs) {
+export function findBestInput(inputs) {
     const filtered = inputs.filter(fileExists.sync);
     return filtered[0];
 }
