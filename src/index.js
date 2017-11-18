@@ -3,6 +3,7 @@ import { eachOfSeries } from 'async';
 import meow from 'meow';
 
 import getTranspilers from './transpilers';
+import getBanner from './banner';
 import configureInputs from './helpers/inputs';
 import { findBestInput } from './helpers/bundle';
 import { generateOutputMatrix, generateOutputFolder } from './helpers/output';
@@ -55,6 +56,7 @@ const formatToRollup = {
 };
 
 const name = pkg.name;
+const banner = getBanner(pkg);
 const formats = ['esmodule', 'cjs'];
 const targets = configureInputs(command.flags);
 
@@ -82,7 +84,15 @@ try {
                                     `${targetId}-${transpilerId}-${format}`
                                 ];
                             if (outputFile) {
-                                // bundle here
+                                return generateBundle({
+                                    input,
+                                    targetId,
+                                    transpilerId,
+                                    current,
+                                    format,
+                                    outputFile,
+                                    doneCallback,
+                                });
                             } else {
                                 return doneCallback(null);
                             }
@@ -138,6 +148,7 @@ function generateBundle({
             write({
                 format: formatToRollup[format],
                 name,
+                banner,
                 dest: outputFile,
             })
         )
