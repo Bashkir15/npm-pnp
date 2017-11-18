@@ -2,6 +2,7 @@ import { isAbsolute, relative } from 'path';
 import { rollup } from 'rollup';
 import nodeResolve from 'rollup-plugin-node-resolve';
 import commonjs from 'rollup-plugin-commonjs';
+import replacePlugin from 'rollup-plugin-replace';
 import yamlPlugin from 'rollup-plugin-yaml';
 import jsonPlugin from 'rollup-plugin-json';
 import fileExists from 'file-exists';
@@ -29,6 +30,13 @@ export function generateBundle({
     Root,
     doneCallback,
 }) {
+    const prefix = 'process.env.';
+    const env = {
+        [`${prefix}NAME`]: JSON.stringify(pkg.name),
+        [`${prefix}VERSION`]: JSON.stringify(pkg.version),
+        [`${prefix}TARGET`]: JSON.stringify(targetId),
+    };
+
     return rollup({
         input,
         cache,
@@ -54,6 +62,7 @@ export function generateBundle({
                 module: true,
                 main: true,
             }),
+            replacePlugin(env),
             commonjs({
                 include: 'node_modules/**',
             }),
