@@ -7,6 +7,8 @@ import yamlPlugin from 'rollup-plugin-yaml';
 import jsonPlugin from 'rollup-plugin-json';
 import fileExists from 'file-exists';
 
+import execute from '../plugins/execute';
+
 const formatToRollup = {
     commonjs: 'cjs',
     esmodule: 'es',
@@ -69,7 +71,8 @@ export function generateBundle({
             yamlPlugin(),
             jsonPlugin(),
             current,
-        ],
+            transpilerId === 'binary' ? execute() : null,
+        ].filter(Boolean),
     })
         .then(({ write }) =>
             write({
