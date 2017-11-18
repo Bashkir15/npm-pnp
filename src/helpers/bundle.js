@@ -1,6 +1,8 @@
 import { isAbsolute, relative } from 'path';
 import { rollup } from 'rollup';
 import nodeResolve from 'rollup-plugin-node-resolve';
+import commonjs from 'rollup-plugin-commonjs';
+import yamlPlugin from 'rollup-plugin-yaml';
 import jsonPlugin from 'rollup-plugin-json';
 import fileExists from 'file-exists';
 
@@ -52,6 +54,10 @@ export function generateBundle({
                 module: true,
                 main: true,
             }),
+            commonjs({
+                include: 'node_modules/**',
+            }),
+            yamlPlugin(),
             jsonPlugin(),
             current,
         ],
